@@ -1,0 +1,41 @@
+INCLUDE Irvine32.inc
+
+.data
+
+A DWORD 0                ; Accumulator
+C DWORD 0
+Q DWORD 101b           ; Multiplicand
+M DWORD 111b           ; Multiplier
+counter DWORD 3         ; Loop counter for 3-bit multiplication
+
+.code
+
+main proc
+    
+    mov edx, A
+    mov ecx, C
+    mov eax, Q          ; Load Q into eax (Multiplicand)
+    mov ebx, M          ; Load M into ebx (Multiplier)
+    mov esi, counter    ; Load counter into ecx
+
+MultiplierLoop:
+    test Q, 1            ; Check the last bit of Q
+    jne ShiftLoop        ; If not 1, skip addition
+
+Add:
+    add A, M            ; Add A+M to accumulator
+    jmp ShiftLoop
+
+ShiftLoop:
+    shr eax, 1            ; Shift Q right by 1
+    shr edx, 1
+    shr ebx, 1
+    dec esi  
+    loop MultiplierLoop ; Repeat 3 times
+
+Exit:
+    call DumpRegs       ; Show register states for debugging
+    exit
+
+main endp
+end main

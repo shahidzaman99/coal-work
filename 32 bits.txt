@@ -1,0 +1,49 @@
+; Simple college registration example that uses
+; the .IF, .ENDIF, and .ELSEIF directives.
+; Last update: 1/28/02
+
+INCLUDE Irvine32.inc
+
+.data
+grade  WORD ?
+marks  WORD , 80
+marks  WORD , 70
+marks  WORD , 60
+marks  WORD , 50
+;A WORD 'A' 
+;B WORD 'B' 
+;C WORD 'C' 
+;D WORD 'D' 
+;F WORD 'F' 
+
+.code
+main PROC
+         call Checkgrade
+
+         mov dl,grade
+        call WriteChar
+	
+	exit
+main ENDP
+
+ Checkgrade PROC
+
+	
+
+	.IF marks >= 80
+	   mov grade,A
+	.ELSEIF (marks < 80 ) && (marks <= 70)
+	    mov grade,b
+	.ELSEIF (marks < 70)&&(marks <=60)
+	    mov grade,c
+        .ELSEIF (marks < 60)&&(marks <=50)
+	    mov grade,D 
+        .ELSE
+        mov grade, 'F' 
+
+	.ENDIF
+
+	ret
+Checkgrade ENDP
+
+END main

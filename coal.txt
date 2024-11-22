@@ -1,0 +1,67 @@
+include irvine32.lib
+
+.data
+    alphabets db  " A B C D E F G H J K L M N O P Q R S T U V W  X Y Z ", 0
+
+.code
+main PROC
+    ; Print the string using Irvine32 library
+    mov edx, OFFSET alphabets
+   call WriteString
+    
+    Exit
+main ENDP
+
+END main
+
+
+question 2
+
+INCLUDE Irvine32.inc                  ; Include Irvine32 library for 32-bit assembly
+
+.data
+array BYTE 0,1,2,3,4,5,6,7,8,9         ; Array with elements 0 to 9
+message BYTE "The sum of the array:", 0    ; Message to display
+newline BYTE 10, 13, 0                   ; Newline characters (Carriage return and Line feed)
+
+.code
+main proc                          ; Main procedure
+
+    ; Display the message "The sum of the array:"
+    mov edx, OFFSET message         
+    call WriteString                      
+
+    ; Print a newline to separate the message from the sum
+    mov edx, OFFSET newline         ; Load address of newline characters into edx
+    mov eax, 2                      
+    int 21h                         
+
+    ; Initialize sum calculation
+    mov esi, OFFSET array           ; Load the address of the array into esi
+    mov ecx, 10                     ; Set loop counter to 10 (number of elements in array)
+    mov edx, 0                      ; Clear edx
+
+loop1:
+    mov dl, [esi]                   ; Load the byte at the current array position into dl
+    add ebx, edx                    ; Add the value in dl to ebx (sum of the array)
+    inc esi                          ; Move to the next byte in the array
+    loop loop1                       
+
+    ; Now ebx contains the sum of the array, divide by 10 to find the average
+
+    mov eax, ebx                     ; Move the sum (in ebx) into eax
+    mov ebx, 10                      ; Set divisor (10) in ebx
+    div ebx                          
+
+    ; Output the result (the average of the array)
+    mov edx, eax                     ; Move the quotient (average) to edx for printing
+    call WriteString                        
+
+    ; Exit the program
+    exit                            
+
+main endp                          
+
+end main                          
+
+
