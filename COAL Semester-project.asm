@@ -12,16 +12,14 @@
     four db "4.Division  $"
     five db "5.Square  $" 
     six db "6.Cube  $" 
-    seven db "7.Square Root$" ; New menu option for square root
-    eight db "8.Decimal to binary$" 
-    nine db "9.Program Exit$" 
+    seven db "7.Program Exit$"
+   
+   
      
     restriction db "Enter your choice$"
     number1 db "Enter the first number: $"  
     number2 db "Enter the second number: $"  
-    singleNumberPrompt db "Enter the number: $" ; New message for square/cube/square root
-    DeciConverProm db "Enter the number between 0-9: $" 
-    resultArray db "Conversion of decimal to binary is: $"
+    singleNumberPrompt db "Enter the number: $" ; New message for square/cube/square roo 
     resultText db "The result is: $"
     exitMessage db "Thank You for using this Application$" ; Exit message 
     
@@ -33,12 +31,12 @@
     Subresult db "Result Of Subtraction is: $"
     Mulresult db "Result Of Multiplication is: $"
     Divresult db "Result Of Division is: $"
-    Sqresult db "Result Of Square is: $"
-    Cuberesult db "Result Of Cube is: $"
-    SQRresult db "Result Of Square Root is: $"                                
+    Sqresult dw "Result Of Square is: $"
+    Cuberesult dw "Result Of Cube is: $"
+                                  
                                     
                                   
-    array db 4 dup(?)
+    
 
 .code ; Code section
 
@@ -81,42 +79,6 @@ Cube macro v1
     mov result, al ; Store result  
 endm
 
-SquareRoot macro v1
-    ; Approximate square root by testing each possible result value
-    mov al, v1
-    mov bl, 0       ; Starting test value in BL (potential square root)
-SquareRootLoop:
-    inc bl          ; Increment potential square root
-    mov ah, 0       ; Clear AH to ensure AX has only BL
-    mov al, bl
-    mul bl          ; Square the test value (result in AX)
-    cmp al, v1      ; Check if square is greater than input
-    ja EndSquareRoot ; If it is, stop
-    jmp SquareRootLoop ; Otherwise, continue 
-    
-EndSquareRoot:
-
-    dec bl          ; Subtract 1 to get closest integer root
-    mov result, bl  ; Store result as approximate square root     
-endm  
-
-Binaryconversion macro v1
-           mov al,v1  
-           mov bl,2  
-                      
-           mov si,OFFSET array 
-           mov cx,4
-       conversion_loop:
-           mov ah,00     ;Clear AH 
-           div bl      
-           mov [si],ah 
-           inc si  
-       loop conversion_loop
-       
-       mov [si],al 
-      
-endm
-      
       
       
 main proc ; Main procedure 
@@ -169,16 +131,8 @@ Start:
     mov dx, offset six  
     call print_String
     call NewLine  
-
-    mov dx, offset seven
-    call print_String
-    call NewLine 
     
-    mov dx, offset eight 
-    call print_String 
-    call NewLine 
-    
-    mov dx,offset nine
+    mov dx,offset seven
     call print_String 
     call NewLine
     call NewLine
@@ -194,29 +148,28 @@ Start:
     sub al, '0' ; Convert ASCII to integer
     mov bl, al ; Store choice in BL 
 
-    cmp bl,9
+    cmp bl,7
     je ExitProgram ; Exit if choice is 9
 
     call NewLine
 
     ; Determine which prompt to display based on operation
-    cmp bl, 5
-    je SquareOrCubePrompt
-    cmp bl, 6
-    je SquareOrCubePrompt
-    cmp bl, 7
-    je SquareOrCubePrompt
-    cmp bl,8
-    je DecToBinConversion
-                          
-    cmp bl,1 
-    je FirstNumberLabel
-    cmp bl,2 
-    je FirstNumberLabel
-    cmp bl,3  
-    je FirstNumberLabel
-    cmp bl,4   
-    je FirstNumberLabel
+   cmp bl, 5
+je DoSquare
+cmp bl, 6
+je DoCube
+cmp bl, 7
+je ExitProgram ; Exit if choice is 7
+
+; Handle operations requiring two inputs
+cmp bl, 1
+je FirstNumberLabel
+cmp bl, 2
+je FirstNumberLabel
+cmp bl, 3
+je FirstNumberLabel
+cmp bl, 4
+je FirstNumberLabel
   
     ;jne Start
     FirstNumberLabel:
@@ -224,15 +177,7 @@ Start:
         mov dx, offset number1
         jmp ShowPrompt
         
-    DecToBinConversion:
-           mov dx,offset DeciConverProm
-           jmp ShowPrompt
-
-SquareOrCubePrompt:
-
-    ; Display "Enter the number" for square, cube, and square root operations
-    mov dx, offset singleNumberPrompt
-
+   
 ShowPrompt: 
 
     call print_String
@@ -246,11 +191,9 @@ ShowPrompt:
     je DoSquare
     cmp bl, 6
     je DoCube 
-    cmp bl, 7
-    je DoSquareRoot 
     
-    cmp bl,8
-    je DoConversion
+    
+    
 
     ; Get number 2 for other operations
     mov dx, offset number2 
@@ -299,26 +242,25 @@ DoDivision:
 
 DoSquare: 
 
-    Square cl ; Calculate the square of the first number 
+       mov dx, offset singleNumberPrompt
+    call print_String
+    call GetNumber
+    mov cl, al ; Store the number
+    Square cl ; Call macro
     mov dx, offset Sqresult
     jmp DisplayResult
                     
 DoCube: 
 
-    Cube cl ; Calculate the cube of the first number 
+     mov dx, offset singleNumberPrompt
+    call print_String
+    call GetNumber
+    mov cl, al ; Store the number
+    Cube cl ; Call macro
     mov dx, offset Cuberesult
     jmp DisplayResult
 
-DoSquareRoot:
 
-    SquareRoot cl ; Calculate the square root of the first number  
-    mov dx, offset SQRresult
-    jmp DisplayResult  
-    
-DoConversion: 
- 
-       Binaryconversion cl
-       jmp DisplayArray
       
 
 Error: 
@@ -341,37 +283,22 @@ Error:
     call NewLine 
         
 
-DisplayResult: 
 
-    call print_String
     
-    mov al, result
-    add al, '0' ; Convert result to ASCII
-    mov dl, al
-    mov ah, 2
-    int 21h
+   DisplayResult:
+    call print_String ; Print the result description (e.g., "Result of Square is:")
+    
+    mov ax, result ; Load the result into AX
+    call ConvertToDecimal ; Convert the binary result to a decimal string
+    mov dx, offset resultBuffer ; Load the address of the result buffer
+    call print_String ; Print the decimal result
 
     call NewLine
-    jmp Start ; Loop back to the start for another operation   
+    jmp Start ; Loop back to the start for another operation
+  
     
     
-DisplayArray: 
-
-    mov dx,offset resultArray
-    call print_String
-    
-    mov si,Offset array + 3   ;means storing last index in si  
-    mov cx,4  
-
-      print_array:
-         mov dl,[si]       ;si means index register
-         add dl,'0'             ;pass value to dx stored at index si
-         mov ah,2
-         int 21h
-         
-         dec si            ;Decrement the address<index register> by 1
-      loop print_array 
-      jmp Start    
+   
       
 
 ExitProgram: 
